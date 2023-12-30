@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaflet Harita</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css"> <!-- Dış CSS dosyasını ekledik -->
+  <style>
+    #map {
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hava Durumu Haritası</h1>
+
+  <div id="map"></div>
+
+  <div id="weather-info">
+    <label for="latitude">Enlem:</label>
+    <input type="text" id="latitude" placeholder="Enlem değerini girin">
+
+    <label for="longitude">Boylam:</label>
+    <input type="text" id="longitude" placeholder="Boylam değerini girin">
+
+    <button onclick="getWeatherData()">Hava Durumu Al</button>
+
+    <p id="location"></p>
+    <p id="temperature"></p>
+    <p id="description"></p>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Haritayı oluştur
+    const map = L.map('map').setView([0, 0], 2); // Başlangıç koordinatları ve zoom seviyesi
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Harita üzerine tıklama olayını dinle
+    map.on('click', function (e) {
+      const { lat, lng } = e.latlng;
+           document.getElementById('latitude').value = lat.toFixed(6);
+      document.getElementById('longitude').value = lng.toFixed(6);
+    });
+
+    // Hava durumu bilgisini almak için bir fonksiyon
+    async function getWeatherData() {
+      const latitude = document.getElementById('latitude').value;
+      const longitude = document.getElementById('longitude').value;
+
+      const apiKey = 'aa2a2a7936msh523fb6926379f40p1b6321jsn772e86d2c21b';
+      const apiUrl = `https://open-weather13.p.rapidapi.com/city/latlon/${latitude}/${longitude}`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+  // Kelvin cinsinden sıcaklık verisini Celsius'a çevir
+      const temperatureCelsius = data.main.temp - 273.15;
+        // Hava durumu bilgilerini güncelle
+        document.getElementById('location').textContent = `Konum: ${data.name}, ${data.sys.country}`;
+        document.getElementById('temperature').textContent = `Sıcaklık: ${temperatureCelsius.toFixed(2)} °C`;
+        document.getElementById('description').textContent = `Durum: ${data.weather[0].description}`;
+      } catch (error) {
+        console.error('Hava durumu bilgileri alınamadı.', error);
+      }
+    }
+  </script>
+
+</body>
+</html>
